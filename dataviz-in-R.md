@@ -93,6 +93,38 @@ dat1 <- dat$entity
 dat <- getFAOtoSYB(domainCode = "OA", elementCode = 561,itemCode = 3010) # Download urban population
 dat2 <- dat$entity
 dat <- merge(dat1,dat2,by=c("FAOST_CODE","Year"))
+```
+
+
+```r
+dim(dat)
+```
+
+```
+[1] 19854     4
+```
+
+```r
+kable(head(dat)) # print 5 first rows
+```
+
+
+
+| FAOST_CODE| Year| OA_3010_551| OA_3010_561|
+|----------:|----:|-----------:|-----------:|
+|        100| 1961|      375928|       82699|
+|        100| 1962|      382709|       85253|
+|        100| 1963|      389708|       87908|
+|        100| 1964|      396938|       90670|
+|        100| 1965|      404412|       93541|
+|        100| 1966|      412128|       96528|
+
+
+Population data from FAOSTAT
+===================================
+
+
+```r
 names(dat) <- c("FAOST_CODE","Year","rural_pop","urban_pop")
 dat$total_pop <- dat$rural_pop + dat$urban_pop # Compute total population
 dat$rural_share <- round(dat$rural_pop / dat$total_pop * 100,1) # Compute rural population share of total population
@@ -140,7 +172,7 @@ p <- ggplot(data=dat,
 p + geom_point()
 ```
 
-![plot of chunk unnamed-chunk-3](dataviz-in-R-figure/unnamed-chunk-3-1.png) 
+![plot of chunk unnamed-chunk-5](dataviz-in-R-figure/unnamed-chunk-5-1.png) 
 
 
 
@@ -153,7 +185,7 @@ p <- p + geom_bar(position="fill", stat="identity")
 p + coord_polar("y")
 ```
 
-![plot of chunk unnamed-chunk-4](dataviz-in-R-figure/unnamed-chunk-4-1.png) 
+![plot of chunk unnamed-chunk-6](dataviz-in-R-figure/unnamed-chunk-6-1.png) 
 
 ***
 
@@ -165,7 +197,7 @@ p <- ggplot(data=plot_data,
 p + geom_bar(stat="identity")
 ```
 
-![plot of chunk unnamed-chunk-5](dataviz-in-R-figure/unnamed-chunk-5-1.png) 
+![plot of chunk unnamed-chunk-7](dataviz-in-R-figure/unnamed-chunk-7-1.png) 
 
 
 
@@ -175,7 +207,7 @@ p <- ggplot(data=dat,
 p + geom_point() + geom_line()
 ```
 
-![plot of chunk unnamed-chunk-6](dataviz-in-R-figure/unnamed-chunk-6-1.png) 
+![plot of chunk unnamed-chunk-8](dataviz-in-R-figure/unnamed-chunk-8-1.png) 
 
 Share of rural population
 =====================================================
@@ -188,7 +220,7 @@ p <- ggplot(data=plot_data,
 p + geom_bar(stat="identity")
 ```
 
-![plot of chunk unnamed-chunk-7](dataviz-in-R-figure/unnamed-chunk-7-1.png) 
+![plot of chunk unnamed-chunk-9](dataviz-in-R-figure/unnamed-chunk-9-1.png) 
 
 
 Share of rural population
@@ -202,7 +234,7 @@ p <- ggplot(data=plot_data,
 p + geom_bar(stat="identity")
 ```
 
-![plot of chunk unnamed-chunk-8](dataviz-in-R-figure/unnamed-chunk-8-1.png) 
+![plot of chunk unnamed-chunk-10](dataviz-in-R-figure/unnamed-chunk-10-1.png) 
 
 
 Share of rural population
@@ -215,7 +247,7 @@ p <- ggplot(data=plot_data, aes(x=cntry,y=rural_share,fill=cont))
 p + geom_bar(stat="identity")
 ```
 
-![plot of chunk unnamed-chunk-9](dataviz-in-R-figure/unnamed-chunk-9-1.png) 
+![plot of chunk unnamed-chunk-11](dataviz-in-R-figure/unnamed-chunk-11-1.png) 
 
 Share of rural population
 =====================================================
@@ -227,7 +259,7 @@ p <- p + geom_bar(stat="identity")
 p + coord_flip()
 ```
 
-![plot of chunk unnamed-chunk-10](dataviz-in-R-figure/unnamed-chunk-10-1.png) 
+![plot of chunk unnamed-chunk-12](dataviz-in-R-figure/unnamed-chunk-12-1.png) 
 
 
 
@@ -249,7 +281,7 @@ p <- p + guides(fill = guide_legend(title = "Continent", title.position = "left"
 p
 ```
 
-![plot of chunk unnamed-chunk-11](dataviz-in-R-figure/unnamed-chunk-11-1.png) 
+![plot of chunk unnamed-chunk-13](dataviz-in-R-figure/unnamed-chunk-13-1.png) 
 
 
 
@@ -283,7 +315,7 @@ map <- map + theme(legend.position = c(0.15,0.45),
 map
 ```
 
-![plot of chunk unnamed-chunk-12](dataviz-in-R-figure/unnamed-chunk-12-1.png) 
+![plot of chunk unnamed-chunk-14](dataviz-in-R-figure/unnamed-chunk-14-1.png) 
 
 
 Exporting for post-processing
@@ -352,7 +384,8 @@ main <- "Rural population"
 color = "rural_share"
 
 # Define color palette
-palette <- leaflet::colorNumeric(c("#fef0d9","#fdcc8a","#fc8d59","#e34a33","#b30000"), NULL)
+palette <- leaflet::colorNumeric(c("#fef0d9","#fdcc8a","#fc8d59","#e34a33","#b30000"), 
+                                 domain = shape2$rural_share)
 
 # Define the text for popup box
 state_popup <- paste0("<strong>Country: </strong>", shape2$ADM0_NAME, 
@@ -360,15 +393,21 @@ state_popup <- paste0("<strong>Country: </strong>", shape2$ADM0_NAME,
                       round(shape2@data[,c(color)], digits=2))
 
 # Generate interactive visualization
-imap <- leaflet(data = shape2) %>% 
+leaflet(data = shape2) %>% 
   addTiles() %>% 
+  setView(lng = 12.30, lat = 41.54, zoom = 3) %>% 
   addPolygons(fillColor = ~palette(get(color)), 
               fillOpacity = 0.7, 
               color = "#000000", 
               weight = 1,
-              popup = state_popup)
-# Add legend!!
+              popup = state_popup) %>% 
+  addLegend("bottomright", pal = palette, values = ~rural_share,
+    title = "Share of rural population",
+    labFormat = labelFormat(prefix = "%")
+  )
 ```
+
+
 
 Interactive maps
 =========================================
