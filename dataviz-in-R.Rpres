@@ -348,7 +348,7 @@ Interactive maps
 =========================================
 
 
-<iframe src="http://unfaostatistics.github.io/brown-bag-dataviz/leaflet/try1.html" style="border: none; width: 1100px; height: 900px"></iframe> 
+<iframe src="http://unfaostatistics.github.io/brown-bag-dataviz/leaflet/leaflet_rural_share.html" style="border: none; width: 1100px; height: 750px"></iframe> 
 
 
 Interactive time-series
