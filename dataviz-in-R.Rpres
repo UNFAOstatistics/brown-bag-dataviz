@@ -35,11 +35,58 @@ loadfonts()
 Content
 ===================================
 
+
+<table>
+    <thead>
+        <tr>
+        <th colspan="2"></th>
+        <th colspan="3"><center><b>Usage</b></center></th>
+        </tr>
+        <tr>
+        <th colspan="2"></th>
+            <th>Print</th>
+            <th>Web</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+        <td rowspan="2"><b>Static</b></td>
+        <td>Bitmap</td>
+        <td>One</td>
+        <td>Two</td>
+        </tr>
+        <tr>
+        <td>Vector</td>
+        <td>Three</td>
+        <td>Four</td>
+        </tr>
+        <tr>
+        <td rowspan="2"><b>Interactive</b></td>
+        <td>Javascript graphs</td>
+        <td>Five</td>
+        <td>Six</td>
+        </tr>
+        <tr>
+        <td>Web applications</td>
+        <td>Seven</td>
+        <td>Eight</td>
+        </tr>
+    </tbody>
+</table>
+
+
+=================================================
+
 - Basics of graphics - bitmap vs. vector
 - Why to use R for graphics - scripting vs. point & click
 - Static graphics in R
 - Post-processing R graphs
 - The WEB: interactive graphics and web applications
+
+
+=================================================
+
+![](map/maps.gif)
 
 
 Vector graphics vs. bitmap graphics
@@ -210,18 +257,24 @@ p
 
 
 
-
+Static Choropleth maps
 =====================================================
 
 
 ```{r}
 library(gisfao)
 library(scales)
+library(tidyr)
+library(stringr)
 shape <- fao_world
 FAOST_CODE <- as.character(shape$FAOST_CODE)
-df.d <- data.frame(FAOST_CODE, rep(NA, nrow(shape)))
+df.d <- data.frame(FAOST_CODE, VarX = rep(NA, nrow(shape)))
 dat$FAOST_CODE[dat$FAOST_CODE == 351] <- 41
-mapdata <- merge(dat %>% filter(Year == 2015), df.d, by.x = "FAOST_CODE", all.y = TRUE)
+mapdata <- merge(dat %>% filter(Year %in% c(1965,1980,2000,2015)), df.d, by.x = "FAOST_CODE", all.y = TRUE)
+mapdata <- mapdata[c("FAOST_CODE","Year","rural_share")]
+mapdata$Year <- paste0("X",mapdata$Year)
+mapdata <- spread(mapdata, Year, rural_share)
+mapdata$XNA <- NULL
 row.names(mapdata) <- mapdata$FAOST_CODE
 row.names(shape) <- as.character(shape$FAO_CODE)
 mapdata <- mapdata[order(row.names(mapdata)), ]
@@ -231,13 +284,89 @@ shape2$id <- rownames(shape2@data)
 map.points <- fortify(shape2, region = "id")
 map.df <- merge(map.points, shape2, by = "id")
 
+map.df <- gather(map.df, "Year", "rural_share", 28:31)
+map.df$Year <- str_replace_all(map.df$Year, "X", "Year ")
 map <- ggplot(data=map.df, aes(long,lat,group=group))
 map <- map  + geom_polygon(aes(fill = rural_share),colour=alpha("white", 3/4),size=.2)
-map <- map + theme(legend.position = c(0.15,0.45), 
+map <- map + theme(legend.position = "top", 
                           legend.background=element_rect(colour=NA, fill=NA),
                           axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+map <- map + facet_wrap(~Year, ncol = 2)
+```
+
+Static Choropleth maps
+=====================================================
+
+```{r}
 map
 ```
+
+
+Animated choropleth maps
+======================================================
+
+```{r, eval=FALSE}
+library(gisfao)
+library(scales)
+library(tidyr)
+library(stringr)
+library(RColorBrewer)
+library(gridExtra)
+shape <- fao_world
+FAOST_CODE <- as.character(shape$FAOST_CODE)
+df.d <- data.frame(FAOST_CODE, VarX = rep(NA, nrow(shape)))
+dat$FAOST_CODE[dat$FAOST_CODE == 351] <- 41
+mapdata <- merge(dat, df.d, by.x = "FAOST_CODE", all.y = TRUE)
+mapdata <- mapdata[c("FAOST_CODE","Year","rural_share")]
+mapdata$Year <- paste0("Year ",mapdata$Year)
+mapdata <- spread(mapdata, Year, rural_share)
+mapdata$XNA <- NULL
+row.names(mapdata) <- mapdata$FAOST_CODE
+row.names(shape) <- as.character(shape$FAO_CODE)
+mapdata <- mapdata[order(row.names(mapdata)), ]
+shape <- shape[order(row.names(shape)), ]
+shape2 <- maptools::spCbind(shape, mapdata)
+shape2$id <- rownames(shape2@data)
+map.points <- fortify(shape2, region = "id")
+map.df <- merge(map.points, shape2, by = "id")
+map.df <- gather(map.df, "Year", "rural_share", 28:118)
+map.df$Year <- as.character(map.df$Year)
+map.df$Year <- str_replace(map.df$Year, "Year.", "")
+map.df$Year <- factor(map.df$Year)
+map.df$Year <- as.numeric(levels(map.df$Year))[map.df$Year]
+myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+y_dat <- data.frame()
+
+
+
+for(y in unique(map.df$Year)[!is.na(unique(map.df$Year))]) {
+  
+  map.df_subset <- map.df[map.df$Year == y,]
+  map <- ggplot(data=map.df_subset, aes(long,lat,group=group))
+  map <- map  + geom_polygon(aes(fill = rural_share),colour=alpha("white", 3/4),size=.2)
+  map <- map + theme(legend.position = "top", 
+                          legend.background=element_rect(colour=NA, fill=NA),
+                          axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+  map <- map + labs(title=paste("Year",y))
+  map <- map + scale_fill_gradientn(limits = c(0,100),colours= myPalette(100))
+  # plot
+  line_data <- map.df_subset[!duplicated(map.df_subset[c("FAO_CODE")]),]
+  line_data <- line_data[c("FAO_CODE","rural_share","ADM0_NAME","Year")]
+  y_dat <- rbind(y_dat,line_data)
+  plot <- ggplot(y_dat, aes(x=Year,y=rural_share,group=FAO_CODE,color=rural_share)) +
+                   geom_line() +
+                   coord_cartesian(xlim=c(1960,2050)) +
+    scale_color_gradientn(limits = c(0,100),colours= myPalette(100)) +
+    coord_cartesian(ylim=c(0,100))
+  
+  
+  png(file=paste0("map/Year.",y,".png"), width=1000, height=700, res=120)
+  grid.arrange(arrangeGrob(map,plot, widths=c(3/5,2/5), ncol=2))
+  dev.off()
+}
+system("convert -delay 40 -loop 0 map/*.png map/maps.gif")
+```
+
 
 
 Exporting for post-processing
