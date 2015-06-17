@@ -28,3 +28,49 @@ Case2
 | R               | [htmlwidgets](http://www.htmlwidgets.org/) | [shiny](http://shiny.rstudio.com/) |
 | good for        | showing off &                              | showing off & explorative wiz      |
 |                 |                                            |                                    |
+
+
+
+## Static graphics
+
+|  graphics format  |         pros         |                cons                |
+| ----------------- | -------------------- | ---------------------------------- |
+| bitmap graphics   | reliable             | limited editing                    |
+|                   | some-compatible      | large file sizes                   |
+|                   | M$ compatible        |                                    |
+|                   |                      |                                    |
+|                   |                      |                                    |
+| vector graphics   | easy to post-process | non M$ compatible (excluding .wmf) |
+|                   | small file size      |                                    |
+|                   | great for print      |                                    |
+
+
+## Interactive graphics
+
+|  graphics format  |            pros            |        cons        |
+| ----------------- | -------------------------- | ------------------ |
+| interactive plots | development currently fast | short life span    |
+|                   | lots of different options  | field unorganised  |
+|                   |                            |                    |
+|                   |                            |                    |
+| web applications  | very flexible              | hosting            |
+|                   |                            | requires tailoring |
+|                   |                            |                    |
+|                   |                            |                    |
+|                   |                            |                    |
+
+R for dataviz
+===================================================
+
+## Pros
+
+- R has good graphics
+- Scripting makes your ideas/graphs re-usable
+- organising your code is important
+- growing expertise in ESS/FAO 
+
+***
+
+## Cons
+
+- scripting is slow the first time

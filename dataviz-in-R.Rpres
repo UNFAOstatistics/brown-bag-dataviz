@@ -392,6 +392,24 @@ type: subsection
 # Case 2: interactive graphics & applications for the web
 
 
+===================================
+
+
+* [ggplot2] - one of the best static visualization packages in R
+* [ggvis] - interactive plots from the makers of ggplot2
+* [rCharts] - R interface to multiple javascript charting libraries
+* [plotly] - convert ggplot2 figures to interactive plots easily
+* [googleVis] - use Google Chart Tools from R
+
+=============================================
+
+You can either jump straight to the [example visualization](#examplevisus) or read my comments first. The R markdown source code for this blog post with embedded visualizations can be found in [Github][source]. I have probably missed some important features and documentation, and also clear mistakes are possible. Please point those out in the comments, and I'll fix them. It is also important to note that I am a heavy ggplot2 user, and hence my comments may also be biased!
+
+Also other libraries for creating interactive visualizations from R do exist, such as [clickme], [RIGHT], [ggobi], [iplots], [gg2v], [rVega], [cranvas] and [r2d3]. Some of these are not under active development anymore. I might include some of those into the comparison here in the future. The [d3Network] package is also worth checking if you need cool interactive network visualizations.
+
+
+
+
 Interactive graphics
 ==================================
 
@@ -472,11 +490,13 @@ Interactive time-series
 
 
 
+=========================================
+type: subsection
+
+# Conclusions
 
 
-
-
-R for dataviz
+R and datavisualisations
 ===================================================
 
 ## Pros
@@ -491,3 +511,39 @@ R for dataviz
 ## Cons
 
 - scripting is slow the first time
+
+
+
+Graphics
+===================================================
+
+## Static graphics
+
+|  graphics format  |         pros         |                cons                |
+| ----------------- | -------------------- | ---------------------------------- |
+| bitmap graphics   | reliable             | limited editing                    |
+|                   | some-compatible      | large file sizes                   |
+|                   | M$ compatible        |                                    |
+|                   |                      |                                    |
+|                   |                      |                                    |
+| vector graphics   | easy to post-process | non M$ compatible (excluding .wmf) |
+|                   | small file size      |                                    |
+|                   | great for print      |                                    |
+
+
+## Interactive graphics
+
+|  graphics format  |            pros            |        cons        |
+| ----------------- | -------------------------- | ------------------ |
+| interactive plots | development currently fast | short life span    |
+|                   | lots of different options  | field unorganised  |
+|                   |                            |  JS skills needed                  |
+|                   |                            |  require internet                  |
+|                   |                            |  can't print!                  |
+| web applications  | very flexible              | hosting & maintenance            |
+|                   | any analysis/task R or linux can do                           | requires tailoring |
+|                   |                            |                    |
+|                   |                            |                    |
+|                   |                            |                    |
+
+
