@@ -3,9 +3,8 @@ Dataviz in R
 css: slides.css
 transition: fade
 transition-speed: fast
-Scripting, post-processing & interactive web
 
-Brown bag lunch, June 18, 2015
+Brown bag seminar, June 18, 2015
 
 <a href="http://markuskainu.fi">Markus Kainu</a></br> 
 ESS, Team F 
@@ -32,65 +31,23 @@ loadfonts()
 ```
 
 
+
+
 Content
+=================================================
+
+1. A biased intro of (statistical) graphics
+2. Why to use R for graphics
+3. Case 1: Static graphics for print & web
+4. Case 2: interactive graphics & applications for the web
+
+
+
+Graphics glossary
 ===================================
 
 
-<table>
-    <thead>
-        <tr>
-        <th colspan="2"></th>
-        <th colspan="3"><center><b>Usage</b></center></th>
-        </tr>
-        <tr>
-        <th colspan="2"></th>
-            <th>Print</th>
-            <th>Web</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-        <td rowspan="2"><b>Static</b></td>
-        <td>Bitmap</td>
-        <td>One</td>
-        <td>Two</td>
-        </tr>
-        <tr>
-        <td>Vector</td>
-        <td>Three</td>
-        <td>Four</td>
-        </tr>
-        <tr>
-        <td rowspan="2"><b>Interactive</b></td>
-        <td>Javascript graphs</td>
-        <td>Five</td>
-        <td>Six</td>
-        </tr>
-        <tr>
-        <td>Web applications</td>
-        <td>Seven</td>
-        <td>Eight</td>
-        </tr>
-    </tbody>
-</table>
-
-
-=================================================
-
-- Basics of graphics - bitmap vs. vector
-- Why to use R for graphics - scripting vs. point & click
-- Static graphics in R
-- Post-processing R graphs
-- The WEB: interactive graphics and web applications
-
-
-=================================================
-
-![](map/maps.gif)
-
-
-Vector graphics vs. bitmap graphics
-===========================================
+## Static graphics
 
 |                  |               bitmap              |                       vector                       |
 |------------------|-----------------------------------|----------------------------------------------------|
@@ -101,14 +58,27 @@ Vector graphics vs. bitmap graphics
 | software         | [Gimp](www.gimp.org/) (Photoshop) | [Inkscape](https://inkscape.org/en/) (Illustrator) |
 | good for         | web, printing (in high-res)       | print, post-processing                             |
 | exclusively used | digital photography               | maps and graphs                                    |
- 
- **You can make vector graphics into bitmap graphics, but not the other way around**
- 
- 
+
+*You can make vector graphics into bitmap graphics, but not the other way around*
+
+## Interactive graphics
+
+|                 |            interactive graphics            |    interactive web applications    |
+| --------------- | ------------------------------------------ | ---------------------------------- |
+| typical example | one-off javascript plot                            | Trade data explorer                |
+| look and feel   | amazing but limited                        | amazing and unlimited              |
+| depends         | online libraries, shipped with data        | Needs a full R instance            |
+| R               | [htmlwidgets](http://www.htmlwidgets.org/) | [shiny](http://shiny.rstudio.com/) |
+| good for        | showing off &                              | showing off & explorative wiz      |
+|                 |                                            |                                    |
+
+
+
+
+Why to R and why to script your plots?
 ===================================
 
 ![](http://i.imgur.com/Q8kV8.png)
- 
 
 
 ===================================
@@ -368,6 +338,10 @@ system("convert -delay 40 -loop 0 map/*.png map/maps.gif")
 ```
 
 
+=================================================
+
+![](map/maps.gif)
+
 
 Exporting for post-processing
 ===================================================
@@ -392,40 +366,17 @@ type: subsection
 # Case 2: interactive graphics & applications for the web
 
 
+Selected Javascript with R bindings
 ===================================
 
-
-* [ggplot2] - one of the best static visualization packages in R
-* [ggvis] - interactive plots from the makers of ggplot2
-* [rCharts] - R interface to multiple javascript charting libraries
-* [plotly] - convert ggplot2 figures to interactive plots easily
-* [googleVis] - use Google Chart Tools from R
-
-=============================================
-
-You can either jump straight to the [example visualization](#examplevisus) or read my comments first. The R markdown source code for this blog post with embedded visualizations can be found in [Github][source]. I have probably missed some important features and documentation, and also clear mistakes are possible. Please point those out in the comments, and I'll fix them. It is also important to note that I am a heavy ggplot2 user, and hence my comments may also be biased!
-
-Also other libraries for creating interactive visualizations from R do exist, such as [clickme], [RIGHT], [ggobi], [iplots], [gg2v], [rVega], [cranvas] and [r2d3]. Some of these are not under active development anymore. I might include some of those into the comparison here in the future. The [d3Network] package is also worth checking if you need cool interactive network visualizations.
+- [Htmlwidgets](http://www.htmlwidgets.org/) - THE R interface to the multiple javascript charting libraries
+- [rCharts](http://rcharts.io/) - Ánother, partly overlapping R interface to multiple javascript charting libraries
+- [googleVis](http://cran.r-project.org/web/packages/googleVis/vignettes/googleVis_examples.html) - use Google Chart Tools from R
+- [ggvis](http://ggvis.rstudio.com/) - interactive plots from the makers of ggplot2
+- [plotly](https://plot.ly/r/) - convert ggplot2 figures to interactive plots easily
 
 
-
-
-Interactive graphics
-==================================
-
-
-|                 |            interactive graphics            |    interactive web applications    |
-| --------------- | ------------------------------------------ | ---------------------------------- |
-| typical example | javascript plot                            | Trade data explorer                |
-| look and feel   | amazing but limited                        | amazing and unlimited              |
-| depends         | online libraries, shipped with data        | Needs a full R instance            |
-| R               | [htmlwidgets](http://www.htmlwidgets.org/) | [shiny](http://shiny.rstudio.com/) |
-| good for        | showing off &                              | showing off & explorative wiz      |
-|                 |                                            |                                    |
-
-
-
-Interactive maps
+Interactive maps with Leaflet library
 =========================================
 
 ```{r, eval=FALSE}
@@ -436,7 +387,7 @@ library(dplyr)
 library(sp)
 library(leaflet)
 
-
+# data manipulation
 shape <- fao_world
 FAOST_CODE <- as.character(shape$FAOST_CODE)
 VarX <- rep(NA, nrow(shape))
@@ -447,7 +398,15 @@ row.names(shape) <- as.character(shape$FAO_CODE)
 dat2 <- dat2[order(row.names(dat2)), ]
 shape <- shape[order(row.names(shape)), ]
 shape2 <- maptools::spCbind(shape, dat2)
+```
 
+
+
+Interactive maps with Leaflet library
+==========================================
+
+
+```{r, eval=FALSE}
 # Define the region and color variables and title:
 main <- "Rural population"
 color = "rural_share"
@@ -478,15 +437,11 @@ leaflet(data = shape2) %>%
 
 
 
-Interactive maps
+Interactive maps with Leaflet library
 =========================================
 
+<iframe src="http://unfaostatistics.github.io/brown-bag-dataviz/leaflet/leaflet_rural_share.html" style="border: none; width: 1000px; height: 650px"></iframe> 
 
-<iframe src="http://unfaostatistics.github.io/brown-bag-dataviz/leaflet/leaflet_rural_share.html" style="border: none; width: 1100px; height: 750px"></iframe> 
-
-
-Interactive time-series
-=========================================
 
 
 
@@ -501,7 +456,7 @@ R and datavisualisations
 
 ## Pros
 
-- R has good graphics
+- R has good graphics capabilities already and development is fast
 - Scripting makes your ideas/graphs re-usable
 - organising your code is important
 - growing expertise in ESS/FAO 
@@ -525,7 +480,6 @@ Graphics
 |                   | some-compatible      | large file sizes                   |
 |                   | M$ compatible        |                                    |
 |                   |                      |                                    |
-|                   |                      |                                    |
 | vector graphics   | easy to post-process | non M$ compatible (excluding .wmf) |
 |                   | small file size      |                                    |
 |                   | great for print      |                                    |
@@ -537,13 +491,20 @@ Graphics
 | ----------------- | -------------------------- | ------------------ |
 | interactive plots | development currently fast | short life span    |
 |                   | lots of different options  | field unorganised  |
-|                   |                            |  JS skills needed                  |
+|                   |                            |  JS skills still very useful  |
 |                   |                            |  require internet                  |
 |                   |                            |  can't print!                  |
 | web applications  | very flexible              | hosting & maintenance            |
 |                   | any analysis/task R or linux can do                           | requires tailoring |
-|                   |                            |                    |
-|                   |                            |                    |
-|                   |                            |                    |
 
 
+==============================
+type: subsection
+
+# Questions to James?
+
+<center>
+
+![](img/question.gif)
+
+</center>
