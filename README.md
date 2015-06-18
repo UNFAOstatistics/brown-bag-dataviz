@@ -11,13 +11,9 @@ Links to R graphic resources
 - [Inkscape](https://inkscape.org/en/)
 - [Shiny](http://shiny.rstudio.com/)
 
-
-- [Htmlwidgets](http://www.htmlwidgets.org/)
-- [rCharts](http://rcharts.io/)
-    - [gallery](http://rcharts.io/gallery/)
-- [googleVis](http://cran.r-project.org/web/packages/googleVis/vignettes/googleVis_examples.html)
-- [ggplot2](http://ggplot2.org/)
-- [ggvis](http://ggvis.rstudio.com/)
-- [plotly](https://plot.ly/r/)
-
+- [Htmlwidgets](http://www.htmlwidgets.org/) - THE R interface to the multiple javascript charting libraries
+- [rCharts](http://rcharts.io/) - Ánother, partly overlapping R interface to multiple javascript charting libraries
+- [googleVis](http://cran.r-project.org/web/packages/googleVis/vignettes/googleVis_examples.html) - use Google Chart Tools from R
+- [ggvis](http://ggvis.rstudio.com/) - interactive plots from the makers of ggplot2
+- [plotly](https://plot.ly/r/) - convert ggplot2 figures to interactive plots easily
 

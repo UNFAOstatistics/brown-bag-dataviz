@@ -3,9 +3,8 @@ Dataviz in R
 css: slides.css
 transition: fade
 transition-speed: fast
-Scripting, post-processing & interactive web
 
-Brown bag lunch, June 18, 2015
+Brown bag seminar, June 18, 2015
 
 <a href="http://markuskainu.fi">Markus Kainu</a></br> 
 ESS, Team F 
@@ -28,30 +27,22 @@ ESS, Team F
 
 
 
-<!-- ---| notes begin |--------------------------------
 
----------| notes end |-----------------------------  --> 
-
-Case Statistical Yearbook
-===================================
-
-![](img/sybprocess.png)
-
-
-
- 
 Content
+=================================================
+
+1. A biased intro of (statistical) graphics
+2. Why to use R for graphics
+3. Case 1: Static graphics for print & web
+4. Case 2: interactive graphics & applications for the web
+
+
+
+Graphics glossary
 ===================================
 
-- Basics of graphics - bitmap vs. vector
-- Why to use R for graphics - scripting vs. point & click
-- Static graphics in R
-- Post-processing R graphs
-- The WEB: interactive graphics and web applications
 
-
-Vector graphics vs. bitmap graphics
-===========================================
+## Static graphics
 
 |                  |               bitmap              |                       vector                       |
 |------------------|-----------------------------------|----------------------------------------------------|
@@ -62,14 +53,27 @@ Vector graphics vs. bitmap graphics
 | software         | [Gimp](www.gimp.org/) (Photoshop) | [Inkscape](https://inkscape.org/en/) (Illustrator) |
 | good for         | web, printing (in high-res)       | print, post-processing                             |
 | exclusively used | digital photography               | maps and graphs                                    |
- 
- **You can make vector graphics into bitmap graphics, but not the other way around**
- 
- 
+
+*You can make vector graphics into bitmap graphics, but not the other way around*
+
+## Interactive graphics
+
+|                 |            interactive graphics            |    interactive web applications    |
+| --------------- | ------------------------------------------ | ---------------------------------- |
+| typical example | one-off javascript plot                            | Trade data explorer                |
+| look and feel   | amazing but limited                        | amazing and unlimited              |
+| depends         | online libraries, shipped with data        | Needs a full R instance            |
+| R               | [htmlwidgets](http://www.htmlwidgets.org/) | [shiny](http://shiny.rstudio.com/) |
+| good for        | showing off &                              | showing off & explorative wiz      |
+|                 |                                            |                                    |
+
+
+
+
+Why to R and why to script your plots?
 ===================================
 
 ![](http://i.imgur.com/Q8kV8.png)
- 
 
 
 ===================================
@@ -285,7 +289,7 @@ p
 
 
 
-
+Static Choropleth maps
 =====================================================
 
 
@@ -293,11 +297,17 @@ p
 ```r
 library(gisfao)
 library(scales)
+library(tidyr)
+library(stringr)
 shape <- fao_world
 FAOST_CODE <- as.character(shape$FAOST_CODE)
-df.d <- data.frame(FAOST_CODE, rep(NA, nrow(shape)))
+df.d <- data.frame(FAOST_CODE, VarX = rep(NA, nrow(shape)))
 dat$FAOST_CODE[dat$FAOST_CODE == 351] <- 41
-mapdata <- merge(dat %>% filter(Year == 2015), df.d, by.x = "FAOST_CODE", all.y = TRUE)
+mapdata <- merge(dat %>% filter(Year %in% c(1965,1980,2000,2015)), df.d, by.x = "FAOST_CODE", all.y = TRUE)
+mapdata <- mapdata[c("FAOST_CODE","Year","rural_share")]
+mapdata$Year <- paste0("X",mapdata$Year)
+mapdata <- spread(mapdata, Year, rural_share)
+mapdata$XNA <- NULL
 row.names(mapdata) <- mapdata$FAOST_CODE
 row.names(shape) <- as.character(shape$FAO_CODE)
 mapdata <- mapdata[order(row.names(mapdata)), ]
@@ -307,15 +317,97 @@ shape2$id <- rownames(shape2@data)
 map.points <- fortify(shape2, region = "id")
 map.df <- merge(map.points, shape2, by = "id")
 
+map.df <- gather(map.df, "Year", "rural_share", 28:31)
+map.df$Year <- str_replace_all(map.df$Year, "X", "Year ")
 map <- ggplot(data=map.df, aes(long,lat,group=group))
 map <- map  + geom_polygon(aes(fill = rural_share),colour=alpha("white", 3/4),size=.2)
-map <- map + theme(legend.position = c(0.15,0.45), 
+map <- map + theme(legend.position = "top", 
                           legend.background=element_rect(colour=NA, fill=NA),
                           axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+map <- map + facet_wrap(~Year, ncol = 2)
+```
+
+Static Choropleth maps
+=====================================================
+
+
+```r
 map
 ```
 
-![plot of chunk unnamed-chunk-14](dataviz-in-R-figure/unnamed-chunk-14-1.png) 
+![plot of chunk unnamed-chunk-15](dataviz-in-R-figure/unnamed-chunk-15-1.png) 
+
+
+Animated choropleth maps
+======================================================
+
+
+```r
+library(gisfao)
+library(scales)
+library(tidyr)
+library(stringr)
+library(RColorBrewer)
+library(gridExtra)
+shape <- fao_world
+FAOST_CODE <- as.character(shape$FAOST_CODE)
+df.d <- data.frame(FAOST_CODE, VarX = rep(NA, nrow(shape)))
+dat$FAOST_CODE[dat$FAOST_CODE == 351] <- 41
+mapdata <- merge(dat, df.d, by.x = "FAOST_CODE", all.y = TRUE)
+mapdata <- mapdata[c("FAOST_CODE","Year","rural_share")]
+mapdata$Year <- paste0("Year ",mapdata$Year)
+mapdata <- spread(mapdata, Year, rural_share)
+mapdata$XNA <- NULL
+row.names(mapdata) <- mapdata$FAOST_CODE
+row.names(shape) <- as.character(shape$FAO_CODE)
+mapdata <- mapdata[order(row.names(mapdata)), ]
+shape <- shape[order(row.names(shape)), ]
+shape2 <- maptools::spCbind(shape, mapdata)
+shape2$id <- rownames(shape2@data)
+map.points <- fortify(shape2, region = "id")
+map.df <- merge(map.points, shape2, by = "id")
+map.df <- gather(map.df, "Year", "rural_share", 28:118)
+map.df$Year <- as.character(map.df$Year)
+map.df$Year <- str_replace(map.df$Year, "Year.", "")
+map.df$Year <- factor(map.df$Year)
+map.df$Year <- as.numeric(levels(map.df$Year))[map.df$Year]
+myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+y_dat <- data.frame()
+
+
+
+for(y in unique(map.df$Year)[!is.na(unique(map.df$Year))]) {
+  
+  map.df_subset <- map.df[map.df$Year == y,]
+  map <- ggplot(data=map.df_subset, aes(long,lat,group=group))
+  map <- map  + geom_polygon(aes(fill = rural_share),colour=alpha("white", 3/4),size=.2)
+  map <- map + theme(legend.position = "top", 
+                          legend.background=element_rect(colour=NA, fill=NA),
+                          axis.text = element_blank(), axis.title = element_blank(), axis.ticks = element_blank())
+  map <- map + labs(title=paste("Year",y))
+  map <- map + scale_fill_gradientn(limits = c(0,100),colours= myPalette(100))
+  # plot
+  line_data <- map.df_subset[!duplicated(map.df_subset[c("FAO_CODE")]),]
+  line_data <- line_data[c("FAO_CODE","rural_share","ADM0_NAME","Year")]
+  y_dat <- rbind(y_dat,line_data)
+  plot <- ggplot(y_dat, aes(x=Year,y=rural_share,group=FAO_CODE,color=rural_share)) +
+                   geom_line() +
+                   coord_cartesian(xlim=c(1960,2050)) +
+    scale_color_gradientn(limits = c(0,100),colours= myPalette(100)) +
+    coord_cartesian(ylim=c(0,100))
+  
+  
+  png(file=paste0("map/Year.",y,".png"), width=1000, height=700, res=120)
+  grid.arrange(arrangeGrob(map,plot, widths=c(3/5,2/5), ncol=2))
+  dev.off()
+}
+system("convert -delay 40 -loop 0 map/*.png map/maps.gif")
+```
+
+
+=================================================
+
+![](map/maps.gif)
 
 
 Exporting for post-processing
@@ -342,22 +434,17 @@ type: subsection
 # Case 2: interactive graphics & applications for the web
 
 
-Interactive graphics
-==================================
+Selected Javascript with R bindings
+===================================
+
+- [Htmlwidgets](http://www.htmlwidgets.org/) - THE R interface to the multiple javascript charting libraries
+- [rCharts](http://rcharts.io/) - Ánother, partly overlapping R interface to multiple javascript charting libraries
+- [googleVis](http://cran.r-project.org/web/packages/googleVis/vignettes/googleVis_examples.html) - use Google Chart Tools from R
+- [ggvis](http://ggvis.rstudio.com/) - interactive plots from the makers of ggplot2
+- [plotly](https://plot.ly/r/) - convert ggplot2 figures to interactive plots easily
 
 
-|                 |            interactive graphics            |    interactive web applications    |
-| --------------- | ------------------------------------------ | ---------------------------------- |
-| typical example | javascript plot                            | Trade data explorer                |
-| look and feel   | amazing but limited                        | amazing and unlimited              |
-| depends         | online libraries, shipped with data        | Needs a full R instance            |
-| R               | [htmlwidgets](http://www.htmlwidgets.org/) | [shiny](http://shiny.rstudio.com/) |
-| good for        | showing off &                              | showing off & explorative wiz      |
-|                 |                                            |                                    |
-
-
-
-Interactive maps
+Interactive maps with Leaflet library
 =========================================
 
 
@@ -367,7 +454,7 @@ library(dplyr)
 library(sp)
 library(leaflet)
 
-
+# data manipulation
 shape <- fao_world
 FAOST_CODE <- as.character(shape$FAOST_CODE)
 VarX <- rep(NA, nrow(shape))
@@ -378,7 +465,16 @@ row.names(shape) <- as.character(shape$FAO_CODE)
 dat2 <- dat2[order(row.names(dat2)), ]
 shape <- shape[order(row.names(shape)), ]
 shape2 <- maptools::spCbind(shape, dat2)
+```
 
+
+
+Interactive maps with Leaflet library
+==========================================
+
+
+
+```r
 # Define the region and color variables and title:
 main <- "Rural population"
 color = "rural_share"
@@ -409,28 +505,26 @@ leaflet(data = shape2) %>%
 
 
 
-Interactive maps
+Interactive maps with Leaflet library
 =========================================
 
+<iframe src="http://unfaostatistics.github.io/brown-bag-dataviz/leaflet/leaflet_rural_share.html" style="border: none; width: 1000px; height: 650px"></iframe> 
 
-<iframe src="http://unfaostatistics.github.io/brown-bag-dataviz/leaflet/try1.html" style="border: none; width: 1100px; height: 900px"></iframe> 
 
 
-Interactive time-series
+
 =========================================
+type: subsection
+
+# Conclusions
 
 
-
-
-
-
-
-R for dataviz
+R and datavisualisations
 ===================================================
 
 ## Pros
 
-- R has good graphics
+- R has good graphics capabilities already and development is fast
 - Scripting makes your ideas/graphs re-usable
 - organising your code is important
 - growing expertise in ESS/FAO 
@@ -440,3 +534,45 @@ R for dataviz
 ## Cons
 
 - scripting is slow the first time
+
+
+
+Graphics
+===================================================
+
+## Static graphics
+
+|  graphics format  |         pros         |                cons                |
+| ----------------- | -------------------- | ---------------------------------- |
+| bitmap graphics   | reliable             | limited editing                    |
+|                   | some-compatible      | large file sizes                   |
+|                   | M$ compatible        |                                    |
+|                   |                      |                                    |
+| vector graphics   | easy to post-process | non M$ compatible (excluding .wmf) |
+|                   | small file size      |                                    |
+|                   | great for print      |                                    |
+
+
+## Interactive graphics
+
+|  graphics format  |            pros            |        cons        |
+| ----------------- | -------------------------- | ------------------ |
+| interactive plots | development currently fast | short life span    |
+|                   | lots of different options  | field unorganised  |
+|                   |                            |  JS skills still very useful  |
+|                   |                            |  require internet                  |
+|                   |                            |  can't print!                  |
+| web applications  | very flexible              | hosting & maintenance            |
+|                   | any analysis/task R or linux can do                           | requires tailoring |
+
+
+==============================
+type: subsection
+
+# Questions to James?
+
+<center>
+
+![](img/question.gif)
+
+</center>
